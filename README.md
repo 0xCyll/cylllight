@@ -5,3 +5,5 @@ Either build the program yourself using pyinstaller and having the libraries ins
 
 # how do i build?
 after you have put in your own API token and changed the program to your liking run ```pyinstaller --onefile --noconsole main.py```
+## Antivirus flagged?
+due to how i built this using pyinstaller it causes a few antivirus software to list it as a false positive, I will try working around this
