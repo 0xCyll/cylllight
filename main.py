@@ -18,8 +18,8 @@ os.makedirs(screenshot_folder, exist_ok=True)
 window = tk.Tk()
 window.title("Cylllight")
 window.configure(bg="black")
-icon_path = "Path2icon.ico"  # put your own path for the icon
-window.iconbitmap(icon_path)
+#icon_path = "Path2icon.ico"  # put your own path for the icon
+#window.iconbitmap(icon_path)
 style = ttk.Style()
 style.theme_use("clam")
 style.configure(".", background="black", foreground="white")
