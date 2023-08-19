@@ -7,19 +7,21 @@ import os
 import webbrowser
 import datetime
 import json
-
-
+import winsound
+import time
+import pyautogui
+import pytesseract
+import threading
 upload_url = "https://api.nightlight.gg/v1/upload"
 fonte = "Helvetica"
 screenshot_folder = os.path.join(os.path.expanduser("~"), "Documents", "cylllight")
+pytesseract.pytesseract.tesseract_cmd = 'tesseract/tesseract.exe'
 
 os.makedirs(screenshot_folder, exist_ok=True)
 
 window = tk.Tk()
 window.title("Cylllight")
 window.configure(bg="black")
-#icon_path = "Path2icon.ico"  # put your own path for the icon
-#window.iconbitmap(icon_path)
 style = ttk.Style()
 style.theme_use("clam")
 style.configure(".", background="black", foreground="white")
@@ -102,8 +104,6 @@ def configure_api_key():
             json.dump({"api_key": api_key}, config_file)
         dialog.destroy()
 
-    def show_api_key():
-        MessageDialog(dialog, "API Key", f"Your current API key is: {api_key}")
 
     dialog_label = ttk.Label(dialog, text="Please enter your API key:")
     dialog_label.pack(padx=20, pady=20)
@@ -116,8 +116,6 @@ def configure_api_key():
     save_button = ttk.Button(dialog, text="Save", command=save_api_key)
     save_button.pack(pady=10)
 
-    show_button = ttk.Button(dialog, text="Show API Key", command=show_api_key)
-    show_button.pack(pady=10)
 
 def take_screenshot_and_upload():
     current_time = datetime.datetime.now().strftime("%Y%m%d%H%M%S")
@@ -143,6 +141,7 @@ def take_screenshot_and_upload():
         )
 
     if response.status_code == 200:
+        winsound.PlaySound("success.wav", winsound.SND_FILENAME)
         response_label.config(text="Screenshot uploaded successfully!")
         response_data = response.json().get("data", {})
         url = response_data.get("url")
@@ -176,4 +175,28 @@ listener.start()
 configure_button = ttk.Button(window, text="Configure API Key", command=configure_api_key)
 configure_button.grid(row=6, column=0, padx=10, pady=10, sticky=tk.W)
 
-window.mainloop()
+monitoring_thread_active = tk.BooleanVar()
+monitoring_thread_active.set(False)
+thread_checkbox = ttk.Checkbutton(window, text="Enable Monitoring", variable=monitoring_thread_active)
+thread_checkbox.grid(row=7, column=0, padx=10, pady=10, sticky=tk.W)
+
+
+def capture_and_recognize_text(x, y, width, height):
+    screenshot = pyautogui.screenshot(region=(x, y, width, height))
+    image = screenshot.convert("RGB")
+    text = pytesseract.image_to_string(image)
+    return text
+def monitor_for_score_status():
+    while True:
+        if monitoring_thread_active.get():  
+            recognized_text = capture_and_recognize_text(767, 222, 200,50)
+            if "SCORE STATUS" in recognized_text:
+                take_screenshot_and_upload()
+                time.sleep(120)
+        time.sleep(1)
+if __name__ == "__main__":
+    
+    monitoring_thread = threading.Thread(target=monitor_for_score_status)
+    monitoring_thread.start()
+
+    window.mainloop()
